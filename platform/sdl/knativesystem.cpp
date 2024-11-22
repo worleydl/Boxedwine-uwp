@@ -1,5 +1,6 @@
 #include "boxedwine.h"
 #include "knativesystem.h"
+#define SDL_MAIN_DECLSPEC dllexport
 #include <SDL.h>
 #include "knativescreenSDL.h"
 #include "../../source/x11/x11.h"
@@ -34,6 +35,9 @@ bool KNativeSystem::init(VideoOption videoOption, bool allowAudio) {
     if (allowAudio) {
         flags |= SDL_INIT_AUDIO;
     }
+
+    flags |= SDL_INIT_GAMECONTROLLER;
+
     if (SDL_Init(flags) != 0) {
         klog("SDL_Init Error: %s", SDL_GetError());
         return false;

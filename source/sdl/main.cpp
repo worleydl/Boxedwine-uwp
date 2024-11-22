@@ -42,6 +42,7 @@ int boxedmain(int argc, const char **argv) {
     StartUpArgs startupArgs;                  
 
     klog("Starting ...");    
+
     KSystem::startMicroCounter();
     KSystem::exePath = BString::copy(argv[0]);
     if (KSystem::exePath.contains("\\")) {
@@ -97,7 +98,7 @@ int boxedmain(int argc, const char **argv) {
 
 #ifdef BOXEDWINE_MSVC
         if (StartUpArgs::uiType == UI_TYPE_UNSET) {
-#ifdef BOXEDWINE_IMGUI_DX9
+#ifdef BOXEDWINE_IMGUI_DX9_DISABLED // Ugly hack to force GL
             StartUpArgs::uiType = UI_TYPE_DX9;
 #else
             StartUpArgs::uiType = UI_TYPE_OPENGL;

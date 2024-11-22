@@ -24,6 +24,8 @@ LRESULT CALLBACK dummyWndProc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM lp)
     return DefWindowProc(hwnd, umsg, wp, lp);
 }
 
+extern "C" __declspec(dllimport) void* uwp_GetWindowReference();
+
 #define WGL_NUMBER_PIXEL_FORMATS_ARB 0x2000
 #define WGL_DRAW_TO_WINDOW_ARB 0x2001
 #define WGL_DRAW_TO_BITMAP_ARB 0x2002
@@ -99,6 +101,8 @@ bool queryOpenGL(BHashTable<U32, GLPixelFormatPtr>& formatsById, std::vector<GLP
     tmpClass.lpszClassName = "boxedwine";
     RegisterClass(&tmpClass);
 
+    // DLW: Need to grab reference from uwp, can't create native window
+    /*
     HWND hwnd = CreateWindow("boxedwine", "boxedwine", WS_POPUP | WS_CLIPCHILDREN, 0, 0, 32, 32, 0, 0, tmpClass.hInstance, 0);
 
     if (!hwnd) {
@@ -106,6 +110,8 @@ bool queryOpenGL(BHashTable<U32, GLPixelFormatPtr>& formatsById, std::vector<GLP
     }
 
     HDC hdc = GetDC(hwnd);
+    */
+    HDC hdc = static_cast<HDC>(uwp_GetWindowReference());
 
     PIXELFORMATDESCRIPTOR pfd;
     memset(&pfd, 0, sizeof(PIXELFORMATDESCRIPTOR));
@@ -273,7 +279,7 @@ bool queryOpenGL(BHashTable<U32, GLPixelFormatPtr>& formatsById, std::vector<GLP
         wglMakeCurrent(oldhdc, oldrc);
         wglDeleteContext(hrc);
     }
-    DestroyWindow(hwnd);
+    //DestroyWindow(hwnd);
     UnregisterClass(tmpClass.lpszClassName, tmpClass.hInstance);
     return formatsById.size() > 0;
 }
