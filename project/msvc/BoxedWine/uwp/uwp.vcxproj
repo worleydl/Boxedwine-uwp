@@ -219,8 +219,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Link>
       <AdditionalDependencies>
-	      		    C:\lib\opengl32.lib;
-	      		    C:\lib\z.lib;
+	      		    opengl32.lib;
+	      		    z.lib;
 	      		    SDL2.lib;
 	      		    $(SolutionDir)x64\Release\libuwp\libuwp.lib;
 	      		    $(SolutionDir)x64\Debug\BoxedWine.lib;
@@ -250,8 +250,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
       <AdditionalDependencies>
-	      		    C:\lib\opengl32.lib;
-	      		    C:\lib\z.lib;
+			    opengl32.lib;
+	      		    z.lib;
 	      		    SDL2.lib;
 	      		    $(SolutionDir)x64\Release\libuwp\libuwp.lib;
 	      		    $(SolutionDir)x64\Release\BoxedWine.lib;
