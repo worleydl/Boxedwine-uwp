@@ -716,8 +716,10 @@ void KNativeScreenSDL::recreateMainWindow() {
                 flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
             }
         }
-
-        window = SDL_CreateWindow("BoxedWine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, cx, cy, flags);
+        // Reuse mainui window and hope for best on UWP
+        //window = SDL_CreateWindow("BoxedWine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, cx, cy, flags);
+        resetContext();
+        window = uwp_getMainWindow();
         if (!window) {
             klog("SDL_CreateWindow failed: %s", SDL_GetError());
         }

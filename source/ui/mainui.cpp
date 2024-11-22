@@ -303,11 +303,25 @@ void loadApps() {
 }
 
 static SDL_Window* window;
+SDL_Window* uwp_getMainWindow() {
+    return window;
+}
 
 #ifdef BOXEDWINE_OPENGL_SDL
 static SDL_GLContext gl_context;
 #endif
 static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+static bool appRunning = false;
+
+// Kill all the imgui stuff and handover to nativescreen
+void resetContext() {
+    ImGui_ImplOpenGL3_Shutdown();
+    SDL_GL_DeleteContext(gl_context);
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
+    appRunning = true;
+}
 
 void uiShutdown() {
     int x=0, y=0;
@@ -342,7 +356,7 @@ void uiShutdown() {
 }
 
 bool uiIsRunning() {
-    return window!= nullptr;
+    return window!= nullptr && appRunning == false;
 }
 
 bool uiLoop() {

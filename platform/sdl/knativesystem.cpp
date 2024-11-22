@@ -179,12 +179,12 @@ BString KNativeSystem::getAppDirectory() {
 }
 
 BString KNativeSystem::getLocalDirectory() {
-    char* s = SDL_GetPrefPath("", "Boxedwine");
+    const char* s = "E:\\boxwine\\"; // SDL_GetPrefPath("", "Boxedwine");
     BString result;
 
     if (s) {
         result = BString::copy(s);
-        SDL_free(s);
+        //SDL_free(s);
     }
     return result;
 }

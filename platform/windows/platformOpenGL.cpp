@@ -316,6 +316,7 @@ static WNDCLASS glClass;
 static bool registered = false;
 
 static HWND glCreateWindow(const GLPixelFormatPtr& format, int width, int height) {
+    /*
     if (!registered) {        
         memset(&glClass, 0, sizeof(WNDCLASS));
         glClass.style = CS_OWNDC | CS_VREDRAW | CS_HREDRAW;
@@ -369,6 +370,8 @@ static HWND glCreateWindow(const GLPixelFormatPtr& format, int width, int height
         }
     }
     return hwnd;
+    */
+    return static_cast<HWND>(uwp_GetWindowReference());
 }
 
 void PlatformOpenGL::init() {
