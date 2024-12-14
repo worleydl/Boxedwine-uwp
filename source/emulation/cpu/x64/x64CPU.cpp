@@ -287,7 +287,38 @@ void common_runSingleOp(x64CPU* cpu) {
         cpu->flags &= ~(SF | AF | ZF | PF | CF | OF);
         cpu->flags |= ((cpu->stringFlags >> 8) & 0xff) | ((cpu->stringFlags & 1) << 11);    
     }
+
+    if (cpu->thread->process->id == 0xa) {
+		int ww = 0;
+        /*
+        if (address == 273996816) {
+            if (!cpu->logFile.isOpen()) {
+                cpu->logFile.createNew(B("wtf.txt"));
+            }
+        }
+        */
+    }
+
     try {
+        /*
+        long known[] = {274130576,
+            273996816,
+            274289868,
+            274359273,
+            274287371,
+            274318976,
+            274286326,
+            274358336 };
+        bool found = false;
+        for (int i = 0; i < 8; i++) {
+            if (address == known[i]) {
+                found = true;
+            }
+        }
+        if (!found) {
+            int qq = 0;
+        }
+        */
         op->pfn(cpu, op);
     } catch (...) {
         int ii = 0;

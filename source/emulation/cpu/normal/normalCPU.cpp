@@ -494,6 +494,12 @@ DecodedBlock* NormalCPU::getNextBlock() {
 }
 
 void NormalCPU::run() {    
+    if (this->thread->process->id == 0xa) {
+        if (!this->logFile.isOpen()) {
+//            this->logFile.createNew("E:\\normal-log.txt");
+        }
+    }
+
     DecodedBlock::currentBlock = this->nextBlock;
     DecodedBlock::currentBlock->run(this);    
 #ifdef _DEBUG

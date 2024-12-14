@@ -105,6 +105,7 @@ void DevTTY::writeTermios(KMemory* memory, U32 address) {
 }
 
 U32 DevTTY::writeNative(U8* buffer, U32 len) {
+    
     BString s = BString::copy((char*)buffer, len);
     // winemenubuilder was removed because it is not necessary and this will speed up start time
     if (s.contains("winemenubuilder")) {
@@ -136,6 +137,10 @@ U32 DevTTY::writeNative(U8* buffer, U32 len) {
             newLine = true;
         }
     }
+
+    // Bad things are happening in UWP
+    return len;
+
     return (U32)::write(1, buffer, len);    
 }
 

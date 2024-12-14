@@ -4464,8 +4464,18 @@ void X64Asm::translateInstruction() {
     KMemoryData* mem = getMemData(cpu->memory);
     this->startOfOpIp = this->ip;
 
+    if (this->ip == 273996816) {
+        int pp = 0;
+    }
 #ifdef _DEBUG
-    //this->logOp(this->ip);
+    if (cpu->thread->process->id == 0xa) {
+        /*
+        if (!cpu->logFile.isOpen()) {
+            this->cpu->logFile.createNew("E:\\hell-log.txt");
+        }
+        */
+        this->logOp(this->ip);
+    }
     // just makes debugging the asm output easier
 #ifndef __TEST
     this->writeToMemFromValue(this->ip, HOST_CPU, true, -1, false, 0, CPU_OFFSET_EIP, 4, false);

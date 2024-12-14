@@ -669,11 +669,20 @@ void glcommon_glGetError(CPU* cpu) {
 
 // XVisualInfo* pglXChooseVisual(Display* dpy, int screen, int* attribList) {
 void gl_common_XChooseVisual(CPU* cpu) {
+    // DLW: Hacked up for UWP, will add preproc later
+
     KThread* thread = cpu->thread;
     KMemory* memory = cpu->memory;
     XServer* server = XServer::getServer();
     U32 address = ARG3;
     U32 value;
+
+    U32 result = thread->process->alloc(thread, sizeof(XVisualInfo));
+	XVisualInfo visualInfo;
+	visualInfo.write(memory, result);
+    EAX = result; // We don't make use of XVI in UWP for now but will need the information later for correct colors
+
+    /*
 
     U32 colorType = PF_COLOR_TYPE_NOTSET;
     U32 cRedBits = 0;
@@ -737,6 +746,7 @@ void gl_common_XChooseVisual(CPU* cpu) {
         thread->process->free(result);
         EAX = 0;
     }
+    */
 }
 
 // GLXContext glXCreateContext(Display* dpy, XVisualInfo* vis, GLXContext shareList, Bool direct) {
@@ -745,9 +755,10 @@ void gl_common_XCreateContext(CPU* cpu) {
     KMemory* memory = cpu->memory;
     XServer* server = XServer::getServer();
     U32 shareList = ARG3;
-    XVisualInfo info;
-    info.read(memory, ARG2);
-    U32 pixelFormatId = memory->readd(info.visual); // pixel format index is in visual.ext_data (first member)
+    // DLW: XVI is currently missing in UWP, may bring back later
+    //XVisualInfo info;
+    //info.read(memory, ARG2);
+    U32 pixelFormatId = 1; // memory->readd(info.visual); // pixel format index is in visual.ext_data (first member)
     KOpenGLPtr gl = KNativeSystem::getOpenGL();
 
     EAX = gl->glCreateContext(thread, gl->getFormat(pixelFormatId), 0, 0, 0, 0, shareList);

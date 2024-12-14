@@ -73,6 +73,8 @@ void SDLGlWindow::destroy() {
 SDLGlWindowPtr SDLGlWindow::createWindow(const std::shared_ptr<GLPixelFormat>& pixelFormat, U32 major, U32 minor, U32 profile, U32 flags, U32 cx, U32 cy) {
     SDL_GL_ResetAttributes();
 
+    // DLW: UWP locked to RGA8 for now
+    /*
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, pixelFormat->pf.cRedBits);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, pixelFormat->pf.cGreenBits);
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, pixelFormat->pf.cBlueBits);
@@ -101,6 +103,7 @@ SDLGlWindowPtr SDLGlWindow::createWindow(const std::shared_ptr<GLPixelFormat>& p
     if (pixelFormat->pf.dwFlags & K_PFD_SWAP_COPY) {
         kwarn("Boxedwine: pixel format swap copy not supported");
     }
+    */
 
     SDL_DisplayMode dm = { 0 };
     int sdlFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN;
@@ -112,15 +115,19 @@ SDLGlWindowPtr SDLGlWindow::createWindow(const std::shared_ptr<GLPixelFormat>& p
     }
     S32 x = 0;
     S32 y = 0;
-    KNativeSystem::getScreen()->getPos(x, y);
-    SDL_Window* window = SDL_CreateWindow("OpenGL Window", x, y, cx, cy, sdlFlags);
+    // DLW: UWP hackin
+    //KNativeSystem::getScreen()->getPos(x, y);
+    //SDL_Window* window = SDL_CreateWindow("OpenGL Window", x, y, cx, cy, sdlFlags);
+    SDL_Window* window = uwp_getMainWindow();
+    // TODO: May need to reset context a bit if knativescreen was doing things first...
 
     if (!window) {
         kwarn("Couldn't create window: %s", SDL_GetError());
         return nullptr;
     }
 
-    return std::make_shared<SDLGlWindow>(window, pixelFormat, major, minor, profile, flags);
+    //return std::make_shared<SDLGlWindow>(window, pixelFormat, major, minor, profile, flags);
+    return std::make_shared<SDLGlWindow>(window, pixelFormat, 4, 6,  SDL_GL_CONTEXT_PROFILE_CORE, SDL_WINDOW_OPENGL);
 }
 
 class SDLGlContext {
@@ -258,7 +265,7 @@ U32 KOpenGLSdl::glCreateContext(KThread* thread, const std::shared_ptr<GLPixelFo
         }
     }
     // Mac requires this on the main thread, but Windows make current will fail if its not on the same thread as create context    
-#ifdef BOXEDWINE_MSVC
+#ifdef BOXEDWINE_MSVC_X
     SDL_GLContext context = SDL_GL_CreateContext(window->window);
 #else
     SDL_GLContext context;
@@ -275,7 +282,10 @@ U32 KOpenGLSdl::glCreateContext(KThread* thread, const std::shared_ptr<GLPixelFo
             SDL_GL_MakeCurrent(window->window, nullptr);
         }
     }
-    window->destroy(); // will run on main thread (thus block this thread for a bit)
+    
+    // DLW: We don't want to "destroy" the main window...
+    //window->destroy(); // will run on main thread (thus block this thread for a bit)
+
 
     BOXEDWINE_CRITICAL_SECTION_WITH_MUTEX(contextMutex);
     U32 result = nextId++;
