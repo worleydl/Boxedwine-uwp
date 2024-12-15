@@ -24,6 +24,10 @@
 #include <Shlwapi.h>
 #include <winternl.h>
 
+#include "gl/GL.h"
+
+extern "C" __declspec(dllimport) void* uwp_GetWindowReference();
+
 char* platform_strcasestr(const char* s1, const char* s2) {
     return StrStrIA(s1, s2);
 }
@@ -477,15 +481,21 @@ U32 Platform::getCpuCount() {
 #endif
 }
 
+typedef int(WINAPI* P_WGL_DPF)(HDC, int, UINT, LPPIXELFORMATDESCRIPTOR);
+
 int getPixelFormats(PixelFormat* pfd, int maxPfs) {
+    // DLW: Utilize mesa-uwp to get pixel formats via wgl, regular DPF call fails
+    HMODULE hModule = LoadLibrary("opengl32.dll");
+    P_WGL_DPF pWglDescribePixelFormat = (P_WGL_DPF)GetProcAddress(hModule, "wglDescribePixelFormat");
+
     PIXELFORMATDESCRIPTOR p = {};
-    HDC hdc = GetDC(GetDesktopWindow());
-    int count = DescribePixelFormat(hdc, 0, 0, nullptr);
+    HDC hdc = (HDC) uwp_GetWindowReference(); // GetDC(GetDesktopWindow());
+    int count = pWglDescribePixelFormat(hdc, 0, 0, nullptr);
     int result = 1;
     int i;
 
     for (i=1;i<=count && result<maxPfs;i++) {
-        DescribePixelFormat(hdc, i, sizeof(p), &p);
+        pWglDescribePixelFormat(hdc, i, sizeof(p), &p);
         if ((p.dwFlags & PFD_SUPPORT_OPENGL) && p.cColorBits<=32 && !(p.dwFlags & PFD_GENERIC_FORMAT)) {
             pfd[result].nSize = 40;
             pfd[result].nVersion = 1;
@@ -519,7 +529,7 @@ int getPixelFormats(PixelFormat* pfd, int maxPfs) {
     }
     if (result==1) {
         for (i=1;i<=count && result<maxPfs;i++) {
-            DescribePixelFormat(hdc, i, sizeof(p), &p);
+            pWglDescribePixelFormat(hdc, i, sizeof(p), &p);
             if ((p.dwFlags & PFD_SUPPORT_OPENGL) && p.cColorBits<=32) {
                 pfd[result].nSize = 40;
                 pfd[result].nVersion = 1;

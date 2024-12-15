@@ -669,20 +669,18 @@ void glcommon_glGetError(CPU* cpu) {
 
 // XVisualInfo* pglXChooseVisual(Display* dpy, int screen, int* attribList) {
 void gl_common_XChooseVisual(CPU* cpu) {
-    // DLW: Hacked up for UWP, will add preproc later
-
     KThread* thread = cpu->thread;
     KMemory* memory = cpu->memory;
     XServer* server = XServer::getServer();
     U32 address = ARG3;
     U32 value;
 
+    /*
     U32 result = thread->process->alloc(thread, sizeof(XVisualInfo));
 	XVisualInfo visualInfo;
 	visualInfo.write(memory, result);
     EAX = result; // We don't make use of XVI in UWP for now but will need the information later for correct colors
-
-    /*
+    */
 
     U32 colorType = PF_COLOR_TYPE_NOTSET;
     U32 cRedBits = 0;
@@ -712,6 +710,7 @@ void gl_common_XChooseVisual(CPU* cpu) {
         if (!(cfg->glPixelFormat->pf.dwFlags & K_PFD_SUPPORT_OPENGL)) {
             return true;
         }
+
         bool isDoubleBuffer = (cfg->glPixelFormat->pf.dwFlags & K_PFD_DOUBLEBUFFER) != 0;
         if (isDoubleBuffer != doubleBuffer) {
             return true;
@@ -746,7 +745,6 @@ void gl_common_XChooseVisual(CPU* cpu) {
         thread->process->free(result);
         EAX = 0;
     }
-    */
 }
 
 // GLXContext glXCreateContext(Display* dpy, XVisualInfo* vis, GLXContext shareList, Bool direct) {
