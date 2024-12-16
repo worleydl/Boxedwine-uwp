@@ -229,6 +229,7 @@ void printOpenGLInfo() {
 void glcommon_glGetString(CPU* cpu) {
     U32 name = ARG1;
     const char* result = (const char*)GL_FUNC(pglGetString)(name);
+
     KProcess* process = cpu->thread->process.get();
 
     if (name == GL_EXTENSIONS) {
@@ -1250,7 +1251,11 @@ void callOpenGL(CPU* cpu, U32 index) {
     if (index < int99CallbackSize && int99Callback[index]) {
         cpu->thread->marshalIndex = 0;
         lastGlCallTime = KSystem::getMilliesSinceStart();
-        int99Callback[index](cpu);
+
+        // UWP isn't happy with OGL calls off main thread currently, this works around it but effectively makes all ogl singlethreaded
+        KNativeSystem::getCurrentInput()->runOnUiThread([index, cpu]() {
+            int99Callback[index](cpu);
+        });
     } else 
 #endif
 {

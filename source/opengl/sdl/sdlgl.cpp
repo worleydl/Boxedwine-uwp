@@ -245,6 +245,7 @@ void SDLGlWindow::showWindow(bool show) {
 }
 
 U32 KOpenGLSdl::glCreateContext(KThread* thread, const std::shared_ptr<GLPixelFormat>& pixelFormat, int major, int minor, int profile, int flags, U32 sharedContextId) {
+    /*
     SDLGlWindowPtr window;
     
     KNativeSystem::getCurrentInput()->runOnUiThread([&]() {
@@ -266,17 +267,20 @@ U32 KOpenGLSdl::glCreateContext(KThread* thread, const std::shared_ptr<GLPixelFo
             SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
         }
     }
+*/
     // Mac requires this on the main thread, but Windows make current will fail if its not on the same thread as create context    
 #ifdef BOXEDWINE_MSVC_X
     SDL_GLContext context = SDL_GL_CreateContext(window->window);
 #else
     SDL_GLContext context;
-    KNativeSystem::getCurrentInput()->runOnUiThread([&context, &window]() {
-        context = SDL_GL_CreateContext(window->window);
-        //SDL_GL_MakeCurrent(window->window, context);
+    KNativeSystem::getCurrentInput()->runOnUiThread([&context]() {
+        context = SDL_GL_CreateContext(uwp_getMainWindow());
+        bool result = SDL_GL_MakeCurrent(uwp_getMainWindow(), context) == 0;
+        int qq = 0;
         });
 #endif    
 
+    /*
     if (needToRestore) {
         SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 0);
         if (restoreContext) {
@@ -286,8 +290,8 @@ U32 KOpenGLSdl::glCreateContext(KThread* thread, const std::shared_ptr<GLPixelFo
         }
     }
     
-    // DLW: We don't want to "destroy" the main window...?
     window->destroy(); // will run on main thread (thus block this thread for a bit)
+    */
 
 
     BOXEDWINE_CRITICAL_SECTION_WITH_MUTEX(contextMutex);
@@ -449,7 +453,12 @@ bool KOpenGLSdl::glMakeCurrent(KThread* thread, const std::shared_ptr<XDrawable>
             }
         }
         */
-        bool result = SDL_GL_MakeCurrent(uwp_getMainWindow(), context->context) == 0;
+        bool result = false;
+        
+        KNativeSystem::getCurrentInput()->runOnUiThread([&]() {
+            result = SDL_GL_MakeCurrent(uwp_getMainWindow(), context->context) == 0;
+        });
+
         if (result) {
             loadSdlExtensions();
             context->currentWindow = window;
