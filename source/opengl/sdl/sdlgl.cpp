@@ -30,6 +30,8 @@
 
 static std::atomic_int shownGlWindows;
 
+static SDL_Window* lastSDLWindow = nullptr;
+
 class SDLGlWindow : public std::enable_shared_from_this<SDLGlWindow> {
 public:
     SDLGlWindow(SDL_Window* window, const std::shared_ptr<GLPixelFormat>& pixelFormat, U32 major, U32 minor, U32 profile, U32 flags) : window(window), pixelFormat(pixelFormat), major(major), minor(minor), profile(profile), flags(flags) {}
@@ -72,8 +74,6 @@ void SDLGlWindow::destroy() {
 
 SDLGlWindowPtr SDLGlWindow::createWindow(const std::shared_ptr<GLPixelFormat>& pixelFormat, U32 major, U32 minor, U32 profile, U32 flags, U32 cx, U32 cy) {
 
-    // DLW: UWP locked to RGA8 for now
-    /*
     SDL_GL_ResetAttributes();
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, pixelFormat->pf.cRedBits);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, pixelFormat->pf.cGreenBits);
@@ -103,7 +103,6 @@ SDLGlWindowPtr SDLGlWindow::createWindow(const std::shared_ptr<GLPixelFormat>& p
     if (pixelFormat->pf.dwFlags & K_PFD_SWAP_COPY) {
         kwarn("Boxedwine: pixel format swap copy not supported");
     }
-    */
 
     SDL_DisplayMode dm = { 0 };
     int sdlFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN;
@@ -117,10 +116,15 @@ SDLGlWindowPtr SDLGlWindow::createWindow(const std::shared_ptr<GLPixelFormat>& p
     S32 y = 0;
     // DLW: UWP hackin
     //KNativeSystem::getScreen()->getPos(x, y);
-    //SDL_DestroyWindow(uwp_getMainWindow()); // Destroy so we can make a new one with ogl flags
-    //SDL_Window* window = SDL_CreateWindow("OpenGL Window", x, y, cx, cy, sdlFlags);
+    if (lastSDLWindow)
+        SDL_DestroyWindow(lastSDLWindow);
+    else
+        SDL_DestroyWindow(uwp_getMainWindow());
+
+    SDL_DestroyWindow(lastSDLWindow); // Destroy so we can make a new one with ogl flags
+    SDL_Window* window = lastSDLWindow = SDL_CreateWindow("OpenGL Window", x, y, cx, cy, sdlFlags);
     //SDL_Window* window = SDL_CreateWindow("OpenGL Window", x, y, 640, 480, sdlFlags);
-    SDL_Window* window = uwp_getMainWindow();
+    //SDL_Window* window = uwp_getMainWindow();
     // TODO: May need to reset context a bit if knativescreen was doing things first...
 
     if (!window) {
@@ -245,7 +249,6 @@ void SDLGlWindow::showWindow(bool show) {
 }
 
 U32 KOpenGLSdl::glCreateContext(KThread* thread, const std::shared_ptr<GLPixelFormat>& pixelFormat, int major, int minor, int profile, int flags, U32 sharedContextId) {
-    /*
     SDLGlWindowPtr window;
     
     KNativeSystem::getCurrentInput()->runOnUiThread([&]() {
@@ -267,20 +270,17 @@ U32 KOpenGLSdl::glCreateContext(KThread* thread, const std::shared_ptr<GLPixelFo
             SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
         }
     }
-*/
+
     // Mac requires this on the main thread, but Windows make current will fail if its not on the same thread as create context    
 #ifdef BOXEDWINE_MSVC_X
     SDL_GLContext context = SDL_GL_CreateContext(window->window);
 #else
     SDL_GLContext context;
-    KNativeSystem::getCurrentInput()->runOnUiThread([&context]() {
-        context = SDL_GL_CreateContext(uwp_getMainWindow());
-        bool result = SDL_GL_MakeCurrent(uwp_getMainWindow(), context) == 0;
-        int qq = 0;
+    KNativeSystem::getCurrentInput()->runOnUiThread([&context, &window]() {
+        context = SDL_GL_CreateContext(window->window);
         });
 #endif    
 
-    /*
     if (needToRestore) {
         SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 0);
         if (restoreContext) {
@@ -291,7 +291,6 @@ U32 KOpenGLSdl::glCreateContext(KThread* thread, const std::shared_ptr<GLPixelFo
     }
     
     window->destroy(); // will run on main thread (thus block this thread for a bit)
-    */
 
 
     BOXEDWINE_CRITICAL_SECTION_WITH_MUTEX(contextMutex);
@@ -436,7 +435,6 @@ bool KOpenGLSdl::glMakeCurrent(KThread* thread, const std::shared_ptr<XDrawable>
     } else {
         SDLGlWindowPtr window;
 
-        /*
         {
             BOXEDWINE_CRITICAL_SECTION_WITH_MUTEX(windowMutex);
             window = sdlWindowById.get(d->id);
@@ -452,11 +450,10 @@ bool KOpenGLSdl::glMakeCurrent(KThread* thread, const std::shared_ptr<XDrawable>
                 sdlWindowById.set(d->id, window);
             }
         }
-        */
         bool result = false;
         
         KNativeSystem::getCurrentInput()->runOnUiThread([&]() {
-            result = SDL_GL_MakeCurrent(uwp_getMainWindow(), context->context) == 0;
+            result = SDL_GL_MakeCurrent(window->window, context->context) == 0;
         });
 
         if (result) {
