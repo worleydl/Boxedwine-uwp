@@ -2580,7 +2580,9 @@ static void x11_XRRRates(CPU* cpu) {
 
 // Status XRRSetScreenConfig(Display* dpy, XRRScreenConfiguration* config, Drawable draw, int size_index, Rotation rotation, Time timestamp)
 static void x11_XRRSetScreenConfig(CPU* cpu) {
-    kpanic("x11_XRRSetScreenConfig");
+    // DLW: UWP is coming here for some reason, doesn't happen on windows...
+    // kpanic("x11_XRRSetScreenConfig");
+    EAX = RRSetConfigSuccess;  // TODO: Actually do some setup?
 }
 
 // Status XRRSetScreenConfigAndRate(Display* dpy, XRRScreenConfiguration* config, Drawable draw, int size_index, Rotation rotation, short rate, Time timestamp)
