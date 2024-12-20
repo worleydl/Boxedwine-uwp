@@ -27,6 +27,7 @@
 #include "../../x11/x11.h"
 #include "../../source/ui/mainui.h"
 #include "../../platform/sdl/sdlcallback.h"
+#include "../../platform/sdl/knativescreenSDL.h"
 
 static std::atomic_int shownGlWindows;
 
@@ -116,12 +117,22 @@ SDLGlWindowPtr SDLGlWindow::createWindow(const std::shared_ptr<GLPixelFormat>& p
     S32 y = 0;
     // DLW: UWP hackin
     //KNativeSystem::getScreen()->getPos(x, y);
+
+    /*
     if (lastSDLWindow)
         SDL_DestroyWindow(lastSDLWindow);
     else
-        SDL_DestroyWindow(uwp_getMainWindow());
+    {
+        KNativeScreenSDL* screen = (KNativeScreenSDL*) KNativeSystem::getScreen().get();
+        screen->destroyMainWindow();  // TODO: Recreate when ogl window count reaches zero 
+    }
+    */
 
-    SDL_DestroyWindow(lastSDLWindow); // Destroy so we can make a new one with ogl flags
+    if (!lastSDLWindow) {
+        KNativeScreenSDL* screen = (KNativeScreenSDL*) KNativeSystem::getScreen().get();
+        screen->destroyMainWindow();  // TODO: Recreate when ogl window count reaches zero 
+    }
+
     SDL_Window* window = lastSDLWindow = SDL_CreateWindow("OpenGL Window", x, y, cx, cy, sdlFlags);
     //SDL_Window* window = SDL_CreateWindow("OpenGL Window", x, y, 640, 480, sdlFlags);
     //SDL_Window* window = uwp_getMainWindow();
@@ -132,8 +143,7 @@ SDLGlWindowPtr SDLGlWindow::createWindow(const std::shared_ptr<GLPixelFormat>& p
         return nullptr;
     }
 
-    //return std::make_shared<SDLGlWindow>(window, pixelFormat, major, minor, profile, flags);
-    return std::make_shared<SDLGlWindow>(window, pixelFormat, 4, 6,  SDL_GL_CONTEXT_PROFILE_CORE, SDL_WINDOW_OPENGL);
+    return std::make_shared<SDLGlWindow>(window, pixelFormat, major, minor, profile, flags);
 }
 
 class SDLGlContext {

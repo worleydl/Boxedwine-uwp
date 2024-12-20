@@ -53,6 +53,10 @@ public:
 
     void setScreenSize(U32 cx, U32 cy) override;
 
+    // DLW: Moved these to public because I want to reset the main window from sdlgl
+    void recreateMainWindow();
+    void destroyMainWindow();
+
     U32 screenWidth() override;
     U32 screenHeight() override;
     U32 screenBpp() override;
@@ -107,8 +111,7 @@ private:
     SDL_Window* window = nullptr;
     SDL_Renderer* renderer = nullptr;
 
-    void recreateMainWindow();
-    void destroyMainWindow();
+    
 
     void destroyTextureCache();
 
