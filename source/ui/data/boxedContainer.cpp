@@ -606,8 +606,8 @@ void BoxedContainer::setWindowsVersion(const BoxedWinVersion& version) {
 
 BString BoxedContainer::getLogPath() {
     // Disabling logging in favor of console while debugging video issues as it thrashes disk
-    return this->dirPath.stringByApppendingPath("lastLog.txt");
-    //return B("");
+    //return this->dirPath.stringByApppendingPath("lastLog.txt");
+    return B("");
 }
 
 BString BoxedContainer::getCacheFolder() {

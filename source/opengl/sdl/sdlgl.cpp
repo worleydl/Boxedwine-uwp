@@ -305,7 +305,7 @@ U32 KOpenGLSdl::glCreateContext(KThread* thread, const std::shared_ptr<GLPixelFo
 
     BOXEDWINE_CRITICAL_SECTION_WITH_MUTEX(contextMutex);
     U32 result = nextId++;
-    SDLGlContextPtr sdlContext = std::make_shared<SDLGlContext>(result, context, pixelFormat, 4, 6, SDL_GL_CONTEXT_PROFILE_CORE, flags);
+    SDLGlContextPtr sdlContext = std::make_shared<SDLGlContext>(result, context, pixelFormat, major, minor, profile, flags);
 
     contextsById.set(result, sdlContext);
     return result;
