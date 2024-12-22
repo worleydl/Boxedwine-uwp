@@ -98,7 +98,7 @@ int boxedmain(int argc, const char **argv) {
 
 #ifdef BOXEDWINE_MSVC
         if (StartUpArgs::uiType == UI_TYPE_UNSET) {
-#ifdef BOXEDWINE_IMGUI_DX9_DISABLED // Ugly hack to force GL
+#ifdef BOXEDWINE_IMGUI_DX9
             StartUpArgs::uiType = UI_TYPE_DX9;
 #else
             StartUpArgs::uiType = UI_TYPE_OPENGL;
