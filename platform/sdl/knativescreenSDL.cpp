@@ -722,10 +722,11 @@ void KNativeScreenSDL::recreateMainWindow() {
                 flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
             }
         }
-        // Reuse mainui window and hope for best on UWP
-        //window = SDL_CreateWindow("BoxedWine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, cx, cy, flags);
-        resetContext();
-        window = uwp_getMainWindow();
+
+        window = SDL_CreateWindow("BoxedWine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, cx, cy, flags);
+
+        resetContext(); // DLW: Still seem to need this or get stuck in infinite loop/mem leak
+
         if (!window) {
             klog("SDL_CreateWindow failed: %s", SDL_GetError());
         }
