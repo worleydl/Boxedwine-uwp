@@ -40,10 +40,10 @@ public:
     U32 scaleYOffset = 0;    
     int lastX = 0;
     int lastY = 0;
-    float virtualMouseDX = 0;
-    float virtualMouseDY = 0;
-    float virtualMouseX = 320;
-    float virtualMouseY = 240;
+    float virtualMouseDX = 0.0;
+    float virtualMouseDY = 0.0;
+    float virtualMouseX = 320.0f;
+    float virtualMouseY = 240.0f;
 
     U32 width = 0;
     U32 height = 0;           

@@ -128,19 +128,18 @@ bool KNativeInputSDL::mouseButton(U32 down, U32 button, int x, int y) {
 }
 
 bool KNativeInputSDL::getVirtualMouseDelta(int* x, int* y) {
-    const int baseX = virtualMouseX;
-    const int baseY = virtualMouseY;
+    const bool changed = virtualMouseDX || virtualMouseDY;
 
-    virtualMouseX += virtualMouseDX * (1.0f / 60); // TODO: Multiply against time delta or actual refresh rate
-    virtualMouseY += virtualMouseDY * (1.0f / 60);
+    virtualMouseX += virtualMouseDX;
+    virtualMouseY += virtualMouseDY;
+
+    *x = virtualMouseDX;
+    *y = virtualMouseDY;
 
     virtualMouseX = std::max(0.0f, std::min(640.0f, virtualMouseX));
     virtualMouseY = std::max(0.0f, std::min(480.0f, virtualMouseY));
 
-    *x = -(baseX - (int) virtualMouseX);
-    *y = -(baseY - (int) virtualMouseY);
-
-    return *x || *y;
+    return changed;
 }
 
 bool KNativeInputSDL::getMousePos(int* x, int* y, bool allowWarp) {
@@ -296,9 +295,8 @@ bool KNativeInputSDL::waitForEvent(U32 ms) {
 }
 
 bool KNativeInputSDL::processEvents() {
-    
-
     SDL_Event e = {};
+
     while (SDL_PollEvent(&e) == 1) {
 #ifdef BOXEDWINE_MULTI_THREADED
         if (e.type == sdlCustomEvent) {
@@ -635,7 +633,7 @@ bool KNativeInputSDL::handlSdlEvent(SDL_Event* e) {
     } else if (e->type == SDL_CONTROLLERAXISMOTION) {
         const SDL_ControllerAxisEvent cae = e->caxis;
 
-#define VIRTUAL_MOUSE_MAX_DELTA 30
+#define VIRTUAL_MOUSE_MAX_DELTA 5 
 #define VIRTUAL_MOUSE_DEADZONE 4000
         const float delta = ((float)cae.value / 32768) * VIRTUAL_MOUSE_MAX_DELTA;
 
@@ -647,7 +645,14 @@ bool KNativeInputSDL::handlSdlEvent(SDL_Event* e) {
     return true;
 }
 
+#define VIRTUAL_MOUSE_TICKRATE 3
+static Uint32 lastVirtualMouseTick = 0;
 void KNativeInputSDL::tickVirtualMouse() {
+    if ((SDL_GetTicks() - lastVirtualMouseTick) < VIRTUAL_MOUSE_TICKRATE)
+        return;
+
+    lastVirtualMouseTick = SDL_GetTicks();
+
 	int dx, dy;
 	const bool changed = KNativeSystem::getCurrentInput()->getVirtualMouseDelta(&dx, &dy);
 
@@ -660,8 +665,8 @@ void KNativeInputSDL::tickVirtualMouse() {
 		event.motion.y = virtualMouseY;
 
 		// Set the mouse motion deltas
-		event.motion.xrel = dx;
-		event.motion.yrel = dy;
+        event.motion.xrel = dx;
+        event.motion.yrel = dy;
 
 		SDL_PushEvent(&event);
 	}

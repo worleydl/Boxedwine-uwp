@@ -89,7 +89,6 @@ bool doMainLoop() {
             KNativeSystem::getCurrentInput()->waitForEvent(timeout);
         }
 #else
-        // DLW: Huge delay here on UWP, does process events below catch everything or can we fix this?
         KNativeSystem::getCurrentInput()->waitForEvent(timeout);
 #endif    
 #if !defined(BOXEDWINE_DISABLE_UI) && !defined(__TEST)

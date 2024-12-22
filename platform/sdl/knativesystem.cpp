@@ -64,6 +64,8 @@ void KNativeSystem::tick() {
     if (opengl && opengl->getLastUpdateTime() + 100 < screen->getLastUpdateTime()) {
         opengl->hideCurrentWindow();
     }
+
+    screen->getInput()->tickVirtualMouse();
 }
 
 void KNativeSystem::showScreen(bool show) {
