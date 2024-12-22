@@ -28,6 +28,7 @@ public:
     virtual bool mouseButton(U32 down, U32 button, int x, int y) = 0;
     virtual bool key(U32 sdlScanCode, U32 key, U32 down) = 0;  // the key code is specific to the back end
 
+    virtual bool getVirtualMouseDelta(int* x, int* y) = 0;
     virtual bool getMousePos(int* x, int* y, bool allowWarp = true) = 0;
     virtual void setMousePos(int x, int y) = 0;
     virtual U32 getInputModifiers() = 0;    

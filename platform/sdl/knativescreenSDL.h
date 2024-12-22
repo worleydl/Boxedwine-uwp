@@ -54,6 +54,7 @@ public:
     void setScreenSize(U32 cx, U32 cy) override;
 
     // DLW: Moved these to public because I want to reset the main window from sdlgl
+    void hideMainWindow();
     void recreateMainWindow();
     void destroyMainWindow();
 

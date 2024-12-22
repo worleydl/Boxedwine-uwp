@@ -669,6 +669,12 @@ void KNativeScreenSDL::destroyMainWindow() {
     }
 }
 
+void KNativeScreenSDL::hideMainWindow() {
+    if (window) {
+        SDL_HideWindow(window);
+    }
+}
+
 void KNativeScreenSDL::recreateMainWindow() {
     if (KSystem::videoOption != VIDEO_NO_WINDOW) {
         destroyMainWindow();

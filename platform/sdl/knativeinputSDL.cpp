@@ -24,7 +24,13 @@
 #include "knativeinputSDL.h"
 #include "knativesystem.h"
 
+#include <algorithm>
+
 U32 sdlCustomEvent;
+
+#define NUM_CONTROLLERS 8
+static SDL_GameController* _gameControllers[NUM_CONTROLLERS] = { 0 };
+
 
 KNativeInputSDL::KNativeInputSDL(U32 cx, U32 cy, int scaleX, int scaleY) {
     if (!sdlCustomEvent) {
@@ -37,6 +43,8 @@ KNativeInputSDL::KNativeInputSDL(U32 cx, U32 cy, int scaleX, int scaleY) {
     this->scaleY = scaleY;
     this->scaleXOffset = 0;
     this->scaleYOffset = 0;    
+
+    refreshControllers();
 }
 
 void KNativeInputSDL::runOnUiThread(std::function<void()> callback) {
@@ -117,6 +125,26 @@ bool KNativeInputSDL::mouseButton(U32 down, U32 button, int x, int y) {
         return true;
     }
     return false;
+}
+
+bool KNativeInputSDL::getVirtualMouseDelta(int* x, int* y) {
+    const bool changed = virtualMouseDX || virtualMouseDY;
+
+    *x = virtualMouseDX;
+    *y = virtualMouseDY;
+
+    // Apply mouse state
+    virtualMouseX += *x;
+    virtualMouseY += *y;
+
+    virtualMouseX = std::max(0, std::min(640, virtualMouseX));
+    virtualMouseY = std::max(0, std::min(480, virtualMouseY));
+
+    // Reset deltas
+    virtualMouseDX = 0;
+    virtualMouseDY = 0;
+
+    return changed;
 }
 
 bool KNativeInputSDL::getMousePos(int* x, int* y, bool allowWarp) {
@@ -272,8 +300,24 @@ bool KNativeInputSDL::waitForEvent(U32 ms) {
 }
 
 bool KNativeInputSDL::processEvents() {
-    SDL_Event e = {};
+    // Update virtual mouse state
+    int dx, dy;
+    if (KNativeSystem::getCurrentInput()->getVirtualMouseDelta(&dx, &dy)) {
+        SDL_Event event = { 0 };
+        event.type = SDL_MOUSEMOTION;
 
+        // Set the current mouse position
+        event.motion.x = virtualMouseX;
+        event.motion.y = virtualMouseY;
+
+        // Set the mouse motion deltas
+        event.motion.xrel = dx;
+        event.motion.yrel = dy;
+
+        SDL_PushEvent(&event);
+    }
+
+    SDL_Event e = {};
     while (SDL_PollEvent(&e) == 1) {
 #ifdef BOXEDWINE_MULTI_THREADED
         if (e.type == sdlCustomEvent) {
@@ -288,6 +332,20 @@ bool KNativeInputSDL::processEvents() {
             }
     }
     return true;
+}
+
+void KNativeInputSDL::refreshControllers() {
+    for (int i = 0; i < NUM_CONTROLLERS; i++) {
+        if (_gameControllers[i])
+            SDL_GameControllerClose(_gameControllers[i]);
+
+        _gameControllers[i] = NULL;
+    }
+
+    const int connected = SDL_NumJoysticks();
+    for (int i = 0; i < connected; i++) {
+        _gameControllers[i] = SDL_GameControllerOpen(i);
+    }
 }
 
 #ifndef SDLK_NUMLOCK
@@ -589,6 +647,21 @@ bool KNativeInputSDL::handlSdlEvent(SDL_Event* e) {
             for (auto& callback : onFocusLost) {
                 callback();
             }
+        }
+    // Basic gamepad mapping
+    } else if (e->type == SDL_CONTROLLERDEVICEADDED || e->type == SDL_CONTROLLERDEVICEREMOVED) {
+        refreshControllers();
+    } else if (e->type == SDL_CONTROLLERAXISMOTION) {
+        const SDL_ControllerAxisEvent cae = e->caxis;
+
+        // Deadzone
+#define VIRTUAL_MOUSE_DELTA 5
+        if (abs(cae.value) > 4000) {
+            if (cae.axis == 0)
+                virtualMouseDX = cae.value > 0 ? VIRTUAL_MOUSE_DELTA : -VIRTUAL_MOUSE_DELTA;
+            else if (cae.axis == 1)
+                virtualMouseDY = cae.value > 0 ? VIRTUAL_MOUSE_DELTA : -VIRTUAL_MOUSE_DELTA;
+
         }
     }
     return true;

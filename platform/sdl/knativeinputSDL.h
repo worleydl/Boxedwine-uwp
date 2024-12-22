@@ -21,6 +21,7 @@ public:
     bool mouseButton(U32 down, U32 button, int x, int y) override;
     bool key(U32 sdlScanCode, U32 key, U32 down) override;  // the key code is specific to the back end
 
+    bool getVirtualMouseDelta(int* x, int* y) override;
     bool getMousePos(int* x, int* y, bool allowWarp = true) override;
     void setMousePos(int x, int y) override;
     U32 getInputModifiers() override;
@@ -38,10 +39,16 @@ public:
     U32 scaleYOffset = 0;    
     int lastX = 0;
     int lastY = 0;
+    int virtualMouseDX = 0;
+    int virtualMouseDY = 0;
+    int virtualMouseX = 320;
+    int virtualMouseY = 240;
+
     U32 width = 0;
     U32 height = 0;           
 
     bool handlSdlEvent(SDL_Event* e);
+    void refreshControllers();
 };
 
 typedef std::shared_ptr<KNativeInputSDL> KNativeInputSDLPtr;
