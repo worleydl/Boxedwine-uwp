@@ -462,9 +462,10 @@ bool KOpenGLSdl::glMakeCurrent(KThread* thread, const std::shared_ptr<XDrawable>
         }
         bool result = false;
         
-        KNativeSystem::getCurrentInput()->runOnUiThread([&]() {
+        // DLW: Threads need to know the context
+        //KNativeSystem::getCurrentInput()->runOnUiThread([&]() {
             result = SDL_GL_MakeCurrent(window->window, context->context) == 0;
-        });
+        //});
 
         if (result) {
             loadSdlExtensions();
