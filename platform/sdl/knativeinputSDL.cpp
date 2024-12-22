@@ -631,16 +631,51 @@ bool KNativeInputSDL::handlSdlEvent(SDL_Event* e) {
     } else if (e->type == SDL_CONTROLLERDEVICEADDED || e->type == SDL_CONTROLLERDEVICEREMOVED) {
         refreshControllers();
     } else if (e->type == SDL_CONTROLLERAXISMOTION) {
-        const SDL_ControllerAxisEvent cae = e->caxis;
-
 #define VIRTUAL_MOUSE_MAX_DELTA 5 
 #define VIRTUAL_MOUSE_DEADZONE 4000
+
+        const SDL_ControllerAxisEvent cae = e->caxis;
+
         const float delta = ((float)cae.value / 32768) * VIRTUAL_MOUSE_MAX_DELTA;
 
-        if (cae.axis == 0)
+        SDL_Event event = { 0 };
+        // TODO: Cleanup spam for buttons/clicks, don't send multiple events for same state
+        switch (cae.axis) {
+        // Left Stick -> WASD events
+        case 0:
+            event.type = abs(cae.value) > VIRTUAL_MOUSE_DEADZONE ? SDL_KEYDOWN : SDL_KEYUP;
+            event.key.keysym.mod = KMOD_NONE;
+            event.key.keysym.sym = delta < 0 ? SDLK_w : SDLK_d;
+            event.key.state = abs(cae.value) > VIRTUAL_MOUSE_DEADZONE ? SDL_PRESSED : SDL_RELEASED;
+            SDL_PushEvent(&event);
+            break;
+
+        case 1:
+            event.type = abs(cae.value) > VIRTUAL_MOUSE_DEADZONE ? SDL_KEYDOWN : SDL_KEYUP;
+            event.key.keysym.mod = KMOD_NONE;
+            event.key.keysym.sym = delta < 0 ? SDLK_s : SDLK_a;
+            event.key.state = abs(cae.value) > VIRTUAL_MOUSE_DEADZONE ? SDL_PRESSED : SDL_RELEASED;
+            SDL_PushEvent(&event);
+            break;
+
+        // Right stick -> Virtual Mouse state
+        case 2:
             virtualMouseDX = abs(cae.value) > VIRTUAL_MOUSE_DEADZONE ? delta : 0;
-        else if (cae.axis == 1)
+            break;
+        case 3:
             virtualMouseDY = abs(cae.value) > VIRTUAL_MOUSE_DEADZONE ? delta : 0;
+            break;
+        // Triggers -> Mouse clicks
+        case 4:
+        case 5:
+            event.type = abs(cae.value) > VIRTUAL_MOUSE_DEADZONE ? SDL_MOUSEBUTTONDOWN : SDL_MOUSEBUTTONUP;
+            event.button.button = cae.axis == 5 ? SDL_BUTTON_LEFT : SDL_BUTTON_RIGHT;
+            event.button.x = virtualMouseX;
+            event.button.y = virtualMouseY;
+            SDL_PushEvent(&event);
+
+            break;
+        }
     }
     return true;
 }
