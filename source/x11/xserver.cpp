@@ -359,6 +359,10 @@ void XServer::draw(bool drawNow) {
 		lastDraw = now;
 		isDisplayDirty = false;
 	}
+
+	// TODO: Where to put this? Need a delay like vsync so it doesn't execute too often
+	KNativeSystem::getCurrentInput()->tickVirtualMouse();
+
 	KNativeScreenPtr screen = KNativeSystem::getScreen();
 	screen->getInput()->runOnUiThread([screen, this]() {
 		bool childWasDrawn = false;

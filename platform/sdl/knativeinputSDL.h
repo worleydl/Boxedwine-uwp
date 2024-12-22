@@ -24,6 +24,7 @@ public:
     bool getVirtualMouseDelta(int* x, int* y) override;
     bool getMousePos(int* x, int* y, bool allowWarp = true) override;
     void setMousePos(int x, int y) override;
+    void tickVirtualMouse() override;
     U32 getInputModifiers() override;
 
     int xToScreen(int x);
@@ -39,10 +40,10 @@ public:
     U32 scaleYOffset = 0;    
     int lastX = 0;
     int lastY = 0;
-    int virtualMouseDX = 0;
-    int virtualMouseDY = 0;
-    int virtualMouseX = 320;
-    int virtualMouseY = 240;
+    float virtualMouseDX = 0;
+    float virtualMouseDY = 0;
+    float virtualMouseX = 320;
+    float virtualMouseY = 240;
 
     U32 width = 0;
     U32 height = 0;           

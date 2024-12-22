@@ -80,6 +80,7 @@ bool doMainLoop() {
             timeout = nextTimer;
         }
         KNativeSystem::tick();
+
 #ifdef BOXEDWINE_RECORDER
         if (Player::instance || Recorder::instance) {
             KNativeSystem::getCurrentInput()->waitForEvent(10);

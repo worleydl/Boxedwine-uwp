@@ -128,23 +128,19 @@ bool KNativeInputSDL::mouseButton(U32 down, U32 button, int x, int y) {
 }
 
 bool KNativeInputSDL::getVirtualMouseDelta(int* x, int* y) {
-    const bool changed = virtualMouseDX || virtualMouseDY;
+    const int baseX = virtualMouseX;
+    const int baseY = virtualMouseY;
 
-    *x = virtualMouseDX;
-    *y = virtualMouseDY;
+    virtualMouseX += virtualMouseDX * (1.0f / 60); // TODO: Multiply against time delta or actual refresh rate
+    virtualMouseY += virtualMouseDY * (1.0f / 60);
 
-    // Apply mouse state
-    virtualMouseX += *x;
-    virtualMouseY += *y;
+    virtualMouseX = std::max(0.0f, std::min(640.0f, virtualMouseX));
+    virtualMouseY = std::max(0.0f, std::min(480.0f, virtualMouseY));
 
-    virtualMouseX = std::max(0, std::min(640, virtualMouseX));
-    virtualMouseY = std::max(0, std::min(480, virtualMouseY));
+    *x = -(baseX - (int) virtualMouseX);
+    *y = -(baseY - (int) virtualMouseY);
 
-    // Reset deltas
-    virtualMouseDX = 0;
-    virtualMouseDY = 0;
-
-    return changed;
+    return *x || *y;
 }
 
 bool KNativeInputSDL::getMousePos(int* x, int* y, bool allowWarp) {
@@ -300,22 +296,7 @@ bool KNativeInputSDL::waitForEvent(U32 ms) {
 }
 
 bool KNativeInputSDL::processEvents() {
-    // Update virtual mouse state
-    int dx, dy;
-    if (KNativeSystem::getCurrentInput()->getVirtualMouseDelta(&dx, &dy)) {
-        SDL_Event event = { 0 };
-        event.type = SDL_MOUSEMOTION;
-
-        // Set the current mouse position
-        event.motion.x = virtualMouseX;
-        event.motion.y = virtualMouseY;
-
-        // Set the mouse motion deltas
-        event.motion.xrel = dx;
-        event.motion.yrel = dy;
-
-        SDL_PushEvent(&event);
-    }
+    
 
     SDL_Event e = {};
     while (SDL_PollEvent(&e) == 1) {
@@ -654,15 +635,34 @@ bool KNativeInputSDL::handlSdlEvent(SDL_Event* e) {
     } else if (e->type == SDL_CONTROLLERAXISMOTION) {
         const SDL_ControllerAxisEvent cae = e->caxis;
 
-        // Deadzone
-#define VIRTUAL_MOUSE_DELTA 5
-        if (abs(cae.value) > 4000) {
-            if (cae.axis == 0)
-                virtualMouseDX = cae.value > 0 ? VIRTUAL_MOUSE_DELTA : -VIRTUAL_MOUSE_DELTA;
-            else if (cae.axis == 1)
-                virtualMouseDY = cae.value > 0 ? VIRTUAL_MOUSE_DELTA : -VIRTUAL_MOUSE_DELTA;
+#define VIRTUAL_MOUSE_MAX_DELTA 30
+#define VIRTUAL_MOUSE_DEADZONE 4000
+        const float delta = ((float)cae.value / 32768) * VIRTUAL_MOUSE_MAX_DELTA;
 
-        }
+        if (cae.axis == 0)
+            virtualMouseDX = abs(cae.value) > VIRTUAL_MOUSE_DEADZONE ? delta : 0;
+        else if (cae.axis == 1)
+            virtualMouseDY = abs(cae.value) > VIRTUAL_MOUSE_DEADZONE ? delta : 0;
     }
     return true;
+}
+
+void KNativeInputSDL::tickVirtualMouse() {
+	int dx, dy;
+	const bool changed = KNativeSystem::getCurrentInput()->getVirtualMouseDelta(&dx, &dy);
+
+	if (changed) {
+		SDL_Event event = { 0 };
+		event.type = SDL_MOUSEMOTION;
+
+		// Set the current mouse position
+		event.motion.x = virtualMouseX;
+		event.motion.y = virtualMouseY;
+
+		// Set the mouse motion deltas
+		event.motion.xrel = dx;
+		event.motion.yrel = dy;
+
+		SDL_PushEvent(&event);
+	}
 }
