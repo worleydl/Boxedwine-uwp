@@ -630,6 +630,65 @@ bool KNativeInputSDL::handlSdlEvent(SDL_Event* e) {
     // Basic gamepad mapping
     } else if (e->type == SDL_CONTROLLERDEVICEADDED || e->type == SDL_CONTROLLERDEVICEREMOVED) {
         refreshControllers();
+    } else if (e->type == SDL_CONTROLLERBUTTONDOWN || e->type == SDL_CONTROLLERBUTTONUP) {
+        SDL_Event event = { 0 };
+        event.type = e->type == SDL_CONTROLLERBUTTONDOWN ? SDL_KEYDOWN : SDL_KEYUP;
+        event.key.keysym.mod = KMOD_NONE;
+
+        switch (e->cbutton.button) {
+        case SDL_CONTROLLER_BUTTON_A:
+            event.key.keysym.sym = SDLK_RETURN;
+            event.key.keysym.scancode = SDL_SCANCODE_RETURN;
+            break;
+        case SDL_CONTROLLER_BUTTON_B:
+            event.key.keysym.sym = SDLK_RCTRL;
+            event.key.keysym.scancode = SDL_SCANCODE_RCTRL;
+            break;
+        case SDL_CONTROLLER_BUTTON_X:
+            event.key.keysym.sym = SDLK_LCTRL;
+            event.key.keysym.scancode = SDL_SCANCODE_LCTRL;
+            break;
+        case SDL_CONTROLLER_BUTTON_Y:
+            event.key.keysym.sym = SDLK_BACKSPACE;
+            event.key.keysym.scancode = SDL_SCANCODE_BACKSPACE;
+            break;
+        case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+            event.key.keysym.sym = SDLK_z;
+            event.key.keysym.scancode = SDL_SCANCODE_Z;
+            break;
+        case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+            event.key.keysym.sym = SDLK_SLASH;
+            event.key.keysym.scancode = SDL_SCANCODE_SLASH;
+            break;
+        case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+            event.key.keysym.sym = SDLK_DOWN;
+            event.key.keysym.scancode = SDL_SCANCODE_DOWN;
+            break;
+        case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+            event.key.keysym.sym = SDLK_LEFT;
+            event.key.keysym.scancode = SDL_SCANCODE_LEFT;
+            break;
+        case SDL_CONTROLLER_BUTTON_DPAD_UP:
+            event.key.keysym.sym = SDLK_UP;
+            event.key.keysym.scancode = SDL_SCANCODE_UP;
+            break;
+        case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+            event.key.keysym.sym = SDLK_RIGHT;
+            event.key.keysym.scancode = SDL_SCANCODE_RIGHT;
+            break;
+        case SDL_CONTROLLER_BUTTON_BACK:
+            event.key.keysym.sym = SDLK_ESCAPE; // TODO: Onscreen keyboard shortcut?
+            event.key.keysym.scancode = SDL_SCANCODE_ESCAPE;
+            break;
+        case SDL_CONTROLLER_BUTTON_START:
+            event.key.keysym.sym = SDLK_ESCAPE;
+            event.key.keysym.scancode = SDL_SCANCODE_ESCAPE;
+            break;
+        }
+        event.key.keysym.sym = KMOD_NONE;
+        event.key.state = e->type == SDL_CONTROLLERBUTTONDOWN ? SDL_PRESSED : SDL_RELEASED;
+        SDL_PushEvent(&event);
+
     } else if (e->type == SDL_CONTROLLERAXISMOTION) {
 #define VIRTUAL_MOUSE_MAX_DELTA 5 
 #define VIRTUAL_MOUSE_DEADZONE 4000
