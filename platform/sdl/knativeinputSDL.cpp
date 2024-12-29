@@ -651,8 +651,8 @@ bool KNativeInputSDL::handlSdlEvent(SDL_Event* e) {
             event.key.keysym.scancode = SDL_SCANCODE_RCTRL;
             break;
         case SDL_CONTROLLER_BUTTON_X:
-            event.key.keysym.sym = SDLK_LCTRL;
-            event.key.keysym.scancode = SDL_SCANCODE_LCTRL;
+            event.key.keysym.sym = SDLK_SPACE;
+            event.key.keysym.scancode = SDL_SCANCODE_SPACE;
             break;
         case SDL_CONTROLLER_BUTTON_Y:
             event.key.keysym.sym = SDLK_BACKSPACE;
