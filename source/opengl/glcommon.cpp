@@ -82,6 +82,7 @@ void glcommon_glViewport(CPU* cpu) {
     GLsizei width = ARG3;
     GLsizei height = ARG4;
 #else
+    // Not an ideal fix as this breaks programs that need a sub viewport for something but it's a quick hack until we get framebuffer support working
     U32 screenWidth, screenHeight;
     KNativeSystem::getScreenDimensions(&screenWidth, &screenHeight);
     GLsizei width = screenWidth;
