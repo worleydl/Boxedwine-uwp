@@ -822,7 +822,8 @@ void gl_common_XGetClientString(CPU* cpu) {
 
 // GLXFBConfig* glXChooseFBConfig(Display* dpy, int screen, const int* attribList, int* nitems)
 void gl_common_XChooseFBConfig(CPU* cpu) {
-    kpanic("glXChooseFBConfig");
+    //kpanic("glXChooseFBConfig");
+    EAX = 0; // TODO: End up here on UWP but not in windows, need to find root cause
 }
 
 // int glXGetFBConfigAttrib(Display* dpy, GLXFBConfig config, int attribute, int* value)
