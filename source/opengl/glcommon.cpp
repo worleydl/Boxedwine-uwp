@@ -78,8 +78,17 @@ extern int sdlScaleY;
 void glcommon_glViewport(CPU* cpu) {
     GLint x = ARG1;
     GLint y = ARG2;
+#ifndef BOXEDWINE_UWP
     GLsizei width = ARG3;
     GLsizei height = ARG4;
+#else
+    U32 screenWidth, screenHeight;
+    KNativeSystem::getScreenDimensions(&screenWidth, &screenHeight);
+    GLsizei width = screenWidth;
+    GLsizei height = screenHeight;
+
+#endif
+    // TODO: Aspect ratio for UWP
     GL_FUNC(pglViewport)(x, y, width, height);
 }
 
