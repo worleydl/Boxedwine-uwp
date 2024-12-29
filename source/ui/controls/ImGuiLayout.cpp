@@ -3,6 +3,9 @@
 #include "../../../lib/imgui/addon/imguitinyfiledialogs.h"
 #include "../utils/imgui_markdown.h"
 
+extern "C" __declspec(dllimport) void uwp_PickAFile(char*);
+extern "C" __declspec(dllimport) void uwp_PickAFolder(char*);
+
 void ImGuiLayout::draw() {
 	if (toolTipWidth < 1.0f) {
 		toolTipWidth = (float)ImGui::CalcTextSize("(?)").x + ImGui::GetStyle().ItemSpacing.x;
@@ -197,7 +200,12 @@ void LayoutTextInputControl::draw(int width) {
 				for (int i=0;i<count;i++) {
 					types[i] = this->browseFileTypes[i].c_str();
 				}
+#ifndef BOXEDWINE_UWP
 				const char* result = tfd::openFileDialog(c_getTranslation(Msg::INSTALLVIEW_OPEN_SETUP_FILE_TITLE), this->text, 1, types, nullptr, 0);
+#else
+				char result[256];
+				uwp_PickAFile(result);
+#endif
 				delete[] types;
 				if (result) {
 					strcpy(this->text, result);
@@ -209,7 +217,12 @@ void LayoutTextInputControl::draw(int width) {
 					}
 				}
 			} else {
+#ifndef BOXEDWINE_UWP
 				const char* result = tfd::selectFolderDialog(c_getTranslation(Msg::GENERIC_OPEN_FOLDER_TITLE), this->text);
+#else
+				char result[256];
+				uwp_PickAFolder(result);
+#endif
 				if (result) {
 					strcpy(this->text, result);
 					if (this->onChange) {

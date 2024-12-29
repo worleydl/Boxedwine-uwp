@@ -10,6 +10,8 @@ LIBAPI void* uwp_GetWindowReference();
 // :: Filepaths
 LIBAPI void uwp_GetBundlePath(char* buffer);
 LIBAPI void uwp_GetBundleFilePath(char* buffer, const char* filename);
+LIBAPI void uwp_PickAFile(char* buffer);
+LIBAPI void uwp_PickAFolder(char* buffer);
 
 // :: Events
 
