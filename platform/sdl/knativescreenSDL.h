@@ -112,6 +112,14 @@ private:
     SDL_Window* window = nullptr;
     SDL_Renderer* renderer = nullptr;
 
+#ifdef BOXEDWINE_UWP
+    int cursorWidth = 0;
+    int cursorHeight = 0;
+    SDL_Texture* cursorTexture = nullptr;
+#endif
+
+
+
     
 
     void destroyTextureCache();

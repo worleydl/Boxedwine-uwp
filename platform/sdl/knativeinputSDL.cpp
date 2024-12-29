@@ -150,12 +150,18 @@ bool KNativeInputSDL::getMousePos(int* x, int* y, bool allowWarp) {
         return checkMousePos(*x, *y, false);
     }
 #endif
+#ifndef BOXEDWINE_UWP
     unsigned int result = SDL_GetMouseState(x, y);
 
     *x = xFromScreen(*x);
     *y = yFromScreen(*y);
 
     return checkMousePos(*x, *y, false);
+#else
+    *x = virtualMouseX;
+    *y = virtualMouseY;
+    return true;
+#endif
 }
 
 void KNativeInputSDL::setMousePos(int x, int y) {

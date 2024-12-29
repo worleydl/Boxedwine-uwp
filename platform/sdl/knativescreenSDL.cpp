@@ -6,7 +6,10 @@
 #include "sdlcallback.h"
 #include "knativeinputSDL.h"
 #include "knativescreenSDL.h"
+#include "knativesystem.h"
 #include "../../source/x11/x11.h"
+
+#include "../source/util/stb_image.h"
 
 KNativeScreenSDL::KNativeScreenSDL(U32 cx, U32 cy, U32 bpp, int scaleX, int scaleY, const BString& scaleQuality, U32 fullScreen, U32 vsync) {
     input = std::make_shared<KNativeInputSDL>(cx, cy, scaleX, scaleY);
@@ -162,6 +165,7 @@ void KNativeScreenSDL::clear() {
 #endif
     if (KSystem::videoOption != VIDEO_NO_WINDOW && renderer) {
         SDL_SetRenderDrawColor(renderer, 58, 110, 165, 255);
+        SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
         SDL_RenderClear(renderer);
     }
 }
@@ -283,6 +287,18 @@ void KNativeScreenSDL::putBitsOnWnd(U32 id, U8* bits, U32 bitsPerPixel, U32 srcP
         dstrect.h = wnd->sdlTextureHeight * (int)input->scaleY / 100;
         SDL_RenderCopy(renderer, wnd->sdlTexture, nullptr, &dstrect);
     }
+
+#ifdef BOXEDWINE_UWP
+    SDL_Rect cursorrect;
+    int mouseX, mouseY;
+    KNativeSystem::getCurrentInput()->getMousePos(&mouseX, &mouseY);
+
+    cursorrect.x = mouseX;
+    cursorrect.y = mouseY;
+    cursorrect.w = this->cursorWidth;
+    cursorrect.h = this->cursorHeight;
+    SDL_RenderCopy(renderer, this->cursorTexture, nullptr, &cursorrect);
+#endif
 }
 
 void KNativeScreenSDL::present() {
@@ -667,6 +683,13 @@ void KNativeScreenSDL::destroyMainWindow() {
     if (window) {
         SDL_DestroyWindow(window);
     }
+
+#ifdef BOXEDWINE_UWP
+    if (this->cursorTexture) {
+        SDL_DestroyTexture(this->cursorTexture);
+    }
+
+#endif
 }
 
 void KNativeScreenSDL::hideMainWindow() {
@@ -747,4 +770,21 @@ void KNativeScreenSDL::recreateMainWindow() {
             renderer = SDL_CreateRenderer(window, -1, flags);
         }
     }
+
+#ifdef BOXEDWINE_UWP
+    // UWP needs to render it's own cursor
+    if (!this->cursorTexture) {
+        int cursorWidth, cursorHeight, cursorChannels;
+        unsigned char* cursorData = stbi_load("pointer_arrow.png", &cursorWidth, &cursorHeight, &cursorChannels, 0);
+        this->cursorWidth = cursorWidth;
+        this->cursorHeight = cursorHeight;
+        this->cursorTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, cursorWidth, cursorHeight);
+        SDL_UpdateTexture(cursorTexture, nullptr, cursorData, cursorWidth * cursorChannels);
+        SDL_SetTextureBlendMode(this->cursorTexture, SDL_BLENDMODE_BLEND);
+        stbi_image_free(cursorData);
+    }
+#endif
+
+
+
 }
