@@ -136,8 +136,8 @@ bool KNativeInputSDL::getVirtualMouseDelta(int* x, int* y) {
     *x = virtualMouseDX;
     *y = virtualMouseDY;
 
-    virtualMouseX = std::max(0.0f, std::min(640.0f, virtualMouseX));
-    virtualMouseY = std::max(0.0f, std::min(480.0f, virtualMouseY));
+    virtualMouseX = std::max(0.0f, std::min(1280.0f, virtualMouseX));
+    virtualMouseY = std::max(0.0f, std::min(1024.0f, virtualMouseY));
 
     return changed;
 }
