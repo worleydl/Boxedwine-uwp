@@ -42,7 +42,6 @@ int boxedmain(int argc, const char **argv) {
     StartUpArgs startupArgs;                  
 
     klog("Starting ...");    
-
     KSystem::startMicroCounter();
     KSystem::exePath = BString::copy(argv[0]);
     if (KSystem::exePath.contains("\\")) {

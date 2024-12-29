@@ -99,7 +99,6 @@ static U32 syscall_write(CPU* cpu, U32 eipCount) {
     SYS_LOG1(SYSCALL_WRITE, cpu, "write: fd=%d buf=0x%X len=%d", ARG1, ARG2, ARG3);
     U32 result = cpu->thread->process->write(cpu->thread, (FD)ARG1, ARG2, ARG3);
     SYS_LOG(SYSCALL_WRITE, cpu, " result=%d(0x%X)\n", result, result);
-
     return result;
 }
 
@@ -2259,12 +2258,7 @@ void ksyscall(CPU* cpu, U32 eipCount) {
             return;
         }
     }
-
-    if (cpu->thread->process->id == 0xa) {
-        int qq = 0;
-    }
-
-    if (EAX > 439) {
+    if (EAX>439) {
         result = -K_ENOSYS;
         kdebug("no syscall for %d", EAX);
     } else if (!syscallFunc[EAX]) {
