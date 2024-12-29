@@ -83,10 +83,17 @@ void glcommon_glViewport(CPU* cpu) {
     GLsizei height = ARG4;
 #else
     // Not an ideal fix as this breaks programs that need a sub viewport for something but it's a quick hack until we get framebuffer support working
-    U32 screenWidth, screenHeight;
-    KNativeSystem::getScreenDimensions(&screenWidth, &screenHeight);
-    GLsizei width = screenWidth;
-    GLsizei height = screenHeight;
+    GLsizei width, height;
+    if (x == 0 && y == 0) {
+        U32 screenWidth, screenHeight;
+        KNativeSystem::getScreenDimensions(&screenWidth, &screenHeight);
+        width = screenWidth;
+        height = screenHeight;
+    }
+    else {
+        width = ARG3;
+        height = ARG4;
+    }
 
 #endif
     // TODO: Aspect ratio for UWP
