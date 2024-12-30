@@ -25,11 +25,13 @@
 #include "knativesystem.h"
 
 #include <algorithm>
+#include <bitset>
 
 U32 sdlCustomEvent;
 
 #define NUM_CONTROLLERS 8
 static SDL_GameController* _gameControllers[NUM_CONTROLLERS] = { 0 };
+std::bitset<AxisStateType::TYPE_COUNT> virtualAxisState; // Track state of axes invoked events to avoid spam
 
 
 KNativeInputSDL::KNativeInputSDL(U32 cx, U32 cy, int scaleX, int scaleY) {
@@ -703,24 +705,40 @@ bool KNativeInputSDL::handlSdlEvent(SDL_Event* e) {
 
         const float delta = ((float)cae.value / 32768) * VIRTUAL_MOUSE_MAX_DELTA;
 
+        bool changed = false;
+        AxisStateType ast;
         SDL_Event event = { 0 };
         // TODO: Cleanup spam for buttons/clicks, don't send multiple events for same state
         switch (cae.axis) {
         // Left Stick -> WASD events
         case 0:
+            ast = delta < 0 ? LEFT_STICK_LEFT : LEFT_STICK_RIGHT;
             event.type = abs(cae.value) > VIRTUAL_MOUSE_DEADZONE ? SDL_KEYDOWN : SDL_KEYUP;
             event.key.keysym.mod = KMOD_NONE;
-            event.key.keysym.sym = delta < 0 ? SDLK_w : SDLK_d;
+            event.key.keysym.sym = ast == LEFT_STICK_LEFT ? SDLK_a : SDLK_d;
             event.key.state = abs(cae.value) > VIRTUAL_MOUSE_DEADZONE ? SDL_PRESSED : SDL_RELEASED;
-            SDL_PushEvent(&event);
+            changed = virtualAxisState.test(ast) != (event.key.state == SDL_PRESSED);
+
+            if (changed)
+                SDL_PushEvent(&event);
+
+            virtualAxisState.set(ast, event.key.state == SDL_PRESSED);
+
             break;
 
         case 1:
+            ast = delta < 0 ? LEFT_STICK_UP : LEFT_STICK_DOWN;
             event.type = abs(cae.value) > VIRTUAL_MOUSE_DEADZONE ? SDL_KEYDOWN : SDL_KEYUP;
             event.key.keysym.mod = KMOD_NONE;
-            event.key.keysym.sym = delta < 0 ? SDLK_s : SDLK_a;
+            event.key.keysym.sym = ast == LEFT_STICK_UP ? SDLK_w : SDLK_s;
             event.key.state = abs(cae.value) > VIRTUAL_MOUSE_DEADZONE ? SDL_PRESSED : SDL_RELEASED;
-            SDL_PushEvent(&event);
+            changed = virtualAxisState.test(ast) != (event.key.state == SDL_PRESSED);
+
+            if (changed)
+                SDL_PushEvent(&event);
+
+            virtualAxisState.set(ast, event.key.state == SDL_PRESSED);
+
             break;
 
         // Right stick -> Virtual Mouse state
@@ -733,11 +751,18 @@ bool KNativeInputSDL::handlSdlEvent(SDL_Event* e) {
         // Triggers -> Mouse clicks
         case 4:
         case 5:
+            ast = cae.axis == 5 ? LEFT_TRIGGER : RIGHT_TRIGGER;
             event.type = abs(cae.value) > VIRTUAL_MOUSE_DEADZONE ? SDL_MOUSEBUTTONDOWN : SDL_MOUSEBUTTONUP;
-            event.button.button = cae.axis == 5 ? SDL_BUTTON_LEFT : SDL_BUTTON_RIGHT;
+            event.button.button = ast == LEFT_TRIGGER ? SDL_BUTTON_LEFT : SDL_BUTTON_RIGHT;
             event.button.x = virtualMouseX;
             event.button.y = virtualMouseY;
-            SDL_PushEvent(&event);
+
+            changed = virtualAxisState.test(ast) != (event.type == SDL_MOUSEBUTTONDOWN);
+
+            if (changed)
+                SDL_PushEvent(&event);
+
+            virtualAxisState.set(ast, event.type == SDL_MOUSEBUTTONDOWN);
 
             break;
         }

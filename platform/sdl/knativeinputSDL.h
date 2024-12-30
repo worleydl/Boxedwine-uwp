@@ -3,6 +3,18 @@
 
 #include "knativeinput.h"
 
+typedef enum
+{
+    LEFT_STICK_UP = 0,
+    LEFT_STICK_DOWN,
+    LEFT_STICK_LEFT,
+    LEFT_STICK_RIGHT,
+    LEFT_TRIGGER,
+    RIGHT_TRIGGER,
+    TYPE_COUNT
+} AxisStateType;
+
+
 class KNativeInputSDL : public KNativeInput {
 public:
     KNativeInputSDL(U32 cx, U32 cy, int scaleX, int scaleY);
