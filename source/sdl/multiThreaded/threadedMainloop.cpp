@@ -34,7 +34,19 @@ extern int allocatedRamPages;
 bool isMainthread() {
     return isMainThread;
 }
+
+// Tick mouse on separate thread from cpu emulation
+void virtualMouseTickLoop() {
+    while (platformThreadCount) {
+        KNativeSystem::getCurrentInput()->tickVirtualMouse();
+        SDL_Delay(5); // Hard to find a good delay that works well with everything
+    }
+}
+
 bool doMainLoop() {
+    // Kick off virtual mouse ticks
+    std::thread mouseTicker(virtualMouseTickLoop);
+
     isMainThread = true;
     while (platformThreadCount) {
         U32 timeout = 5000;
@@ -115,6 +127,8 @@ bool doMainLoop() {
             return true;
         }
     };
+    mouseTicker.join();
+
     return true;
 }
 

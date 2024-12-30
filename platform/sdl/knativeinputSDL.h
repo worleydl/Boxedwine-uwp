@@ -58,7 +58,11 @@ public:
     float virtualMouseY = 240.0f;
 
     U32 width = 0;
-    U32 height = 0;           
+    U32 height = 0;
+
+    // maybe patch libuwp to work with u32
+    int fullWidth = 0;
+    int fullHeight = 0;
 
     bool handlSdlEvent(SDL_Event* e);
     void refreshControllers();

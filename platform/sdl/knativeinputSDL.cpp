@@ -31,7 +31,9 @@ U32 sdlCustomEvent;
 
 #define NUM_CONTROLLERS 8
 static SDL_GameController* _gameControllers[NUM_CONTROLLERS] = { 0 };
-std::bitset<AxisStateType::TYPE_COUNT> virtualAxisState; // Track state of axes invoked events to avoid spam
+static std::bitset<AxisStateType::TYPE_COUNT> virtualAxisState; // Track state of axes invoked events to avoid spam
+
+extern "C" __declspec(dllimport) void uwp_GetScreenSize(int*, int*);
 
 
 KNativeInputSDL::KNativeInputSDL(U32 cx, U32 cy, int scaleX, int scaleY) {
@@ -45,6 +47,8 @@ KNativeInputSDL::KNativeInputSDL(U32 cx, U32 cy, int scaleX, int scaleY) {
     this->scaleY = scaleY;
     this->scaleXOffset = 0;
     this->scaleYOffset = 0;    
+
+    uwp_GetScreenSize(&this->fullWidth, &this->fullHeight);
 
     refreshControllers();
 }
@@ -138,8 +142,8 @@ bool KNativeInputSDL::getVirtualMouseDelta(int* x, int* y) {
     *x = virtualMouseDX;
     *y = virtualMouseDY;
 
-    virtualMouseX = std::max(0.0f, std::min(1280.0f, virtualMouseX));
-    virtualMouseY = std::max(0.0f, std::min(1024.0f, virtualMouseY));
+    virtualMouseX = std::max(0.0f, std::min((float)this->fullWidth, virtualMouseX));
+    virtualMouseY = std::max(0.0f, std::min((float)this->fullHeight, virtualMouseY));
 
     return changed;
 }
@@ -698,7 +702,7 @@ bool KNativeInputSDL::handlSdlEvent(SDL_Event* e) {
         SDL_PushEvent(&event);
 
     } else if (e->type == SDL_CONTROLLERAXISMOTION) {
-#define VIRTUAL_MOUSE_MAX_DELTA 5 
+#define VIRTUAL_MOUSE_MAX_DELTA 10 
 #define VIRTUAL_MOUSE_DEADZONE 4000
 
         const SDL_ControllerAxisEvent cae = e->caxis;
@@ -708,7 +712,6 @@ bool KNativeInputSDL::handlSdlEvent(SDL_Event* e) {
         bool changed = false;
         AxisStateType ast;
         SDL_Event event = { 0 };
-        // TODO: Cleanup spam for buttons/clicks, don't send multiple events for same state
         switch (cae.axis) {
         // Left Stick -> WASD events
         case 0:
@@ -770,14 +773,7 @@ bool KNativeInputSDL::handlSdlEvent(SDL_Event* e) {
     return true;
 }
 
-#define VIRTUAL_MOUSE_TICKRATE 3
-static Uint32 lastVirtualMouseTick = 0;
 void KNativeInputSDL::tickVirtualMouse() {
-    if ((SDL_GetTicks() - lastVirtualMouseTick) < VIRTUAL_MOUSE_TICKRATE)
-        return;
-
-    lastVirtualMouseTick = SDL_GetTicks();
-
 	int dx, dy;
 	const bool changed = KNativeSystem::getCurrentInput()->getVirtualMouseDelta(&dx, &dy);
 
